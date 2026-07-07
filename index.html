@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>给妈妈的生日花园</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      color: #5a3045;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.9), transparent 36%),
+        linear-gradient(135deg, #fff4f7 0%, #f8e7ff 45%, #ffe9da 100%);
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 34px 18px;
+    }
+
+    .card {
+      position: relative;
+      width: min(1080px, 100%);
+      min-height: 860px;
+      border-radius: 36px;
+      background: rgba(255, 255, 255, 0.48);
+      box-shadow: 0 28px 80px rgba(145, 78, 112, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+    }
+
+    .signature {
+      position: absolute;
+      right: 28px;
+      top: 24px;
+      font-size: 14px;
+      color: rgba(122, 58, 89, 0.62);
+      z-index: 10;
+    }
+
+    .title {
+      text-align: center;
+      padding: 42px 20px 10px;
+      position: relative;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .title p {
+      margin: 0 0 10px;
+      letter-spacing: 0.16em;
+      font-size: 13px;
+      color: #9b6680;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: 1.05;
+      font-weight: 800;
+      color: #7a3a59;
+      text-shadow: 0 8px 26px rgba(146, 75, 106, 0.12);
+    }
+
+    .hint {
+      margin-top: 16px;
+      font-size: 15px;
+      color: #8a6272;
+    }
+
+    .garden {
+      position: absolute;
+      inset: 155px 0 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 65px;
+    }
+
+    .bouquet {
+      position: relative;
+      width: 920px;
+      max-width: 96vw;
+      height: 560px;
+    }
+
+    /*
+      关键分层：
+      1. 花层      z-index: 2
+      2. 瓶身      z-index: 3
+      3. 瓶口边缘  z-index: 4
+
+      不再使用瓶口后面的深色椭圆，避免看起来像一个奇怪的影子。
+    */
+
+    .flowers-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+
+    .flower {
+      --x: 0px;
+      --h: 220px;
+      --r: 0deg;
+      --c: #ff8fab;
+      --p: #ffd6e0;
+
+      position: absolute;
+      left: 50%;
+      bottom: 310px;
+      width: 80px;
+      height: var(--h);
+      transform: translateX(calc(-50% + var(--x))) rotate(var(--r));
+      transform-origin: bottom center;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .stem {
+      position: absolute;
+      left: 50%;
+      bottom: -42px;
+      width: 8px;
+      height: calc(var(--h) + 18px);
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: linear-gradient(#89b96f, #5b9c61);
+      box-shadow: inset 1px 0 2px rgba(255,255,255,0.4);
+    }
+
+    .leaf {
+      position: absolute;
+      left: 50%;
+      bottom: var(--leaf-bottom, 80px);
+      width: 56px;
+      height: 24px;
+      margin-left: 3px;
+      background: linear-gradient(135deg, #9bd07c, #5aab68);
+      border-radius: 100% 0 100% 0;
+      transform-origin: 0 50%;
+      transform: rotate(var(--leaf-rotate, -34deg));
+      opacity: 0.9;
+    }
+
+    .leaf.right {
+      margin-left: -59px;
+      transform-origin: 100% 50%;
+      transform: scaleX(-1) rotate(var(--leaf-rotate, -34deg));
+    }
+
+    .bud {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 72px;
+      height: 72px;
+      transform: translateX(-50%) rotate(calc(var(--r) * -0.35));
+      transition: transform 0.55s ease;
+      z-index: 3;
+    }
+
+    .petal {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 30px;
+      height: 48px;
+      margin-left: -15px;
+      margin-top: -38px;
+      border-radius: 50% 50% 45% 45%;
+      background: linear-gradient(180deg, var(--p), var(--c));
+      transform-origin: 50% 86%;
+      transform: rotate(var(--a)) translateY(7px) scale(0.36);
+      opacity: 0.96;
+      box-shadow: 0 8px 15px rgba(132, 55, 86, 0.14);
+      transition:
+        transform 0.62s cubic-bezier(.2,.8,.2,1.25),
+        filter 0.62s ease;
+    }
+
+    .center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 24px;
+      height: 24px;
+      transform: translate(-50%, -50%) scale(0.8);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff6a8, #f4b954 70%);
+      box-shadow: 0 5px 12px rgba(132, 88, 32, 0.18);
+      transition: transform 0.45s ease;
+    }
+
+    .bud::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 32px;
+      height: 44px;
+      transform: translate(-50%, -42%);
+      border-radius: 50% 50% 40% 40%;
+      background: linear-gradient(180deg, var(--c), #86b96b);
+      box-shadow: 0 10px 16px rgba(99, 64, 75, 0.12);
+      opacity: 1;
+      transition: opacity 0.35s ease, transform 0.5s ease;
+    }
+
+    .flower:hover .petal,
+    .flower.open .petal {
+      transform: rotate(var(--a)) translateY(-22px) scale(1);
+      filter: saturate(1.1);
+    }
+
+    .flower:hover .center,
+    .flower.open .center {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .flower:hover .bud::after,
+    .flower.open .bud::after {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.2);
+    }
+
+    .flower:hover .bud,
+    .flower.open .bud {
+      transform: translateX(-50%) rotate(calc(var(--r) * -0.35)) scale(1.04);
+    }
+
+    .vase-body {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 340px;
+      height: 320px;
+      transform: translateX(-50%);
+      border-radius: 24px 24px 34px 34px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.62), rgba(255,255,255,0.10) 18%, rgba(255,255,255,0.10) 82%, rgba(255,255,255,0.40)),
+        linear-gradient(135deg, #edf4f8 0%, #f5d8e6 56%, #ffe8dc 100%);
+      border: 2px solid rgba(255,255,255,0.72);
+      box-shadow:
+        inset 20px 0 28px rgba(255,255,255,0.34),
+        inset -18px -20px 34px rgba(138, 88, 108, 0.12),
+        0 24px 45px rgba(123, 67, 93, 0.18);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .vase-body::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -10px;
+      width: 332px;
+      height: 28px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+      filter: blur(2px);
+    }
+
+    .vase-body::after {
+      content: "Happy Birthday";
+      position: absolute;
+      left: 50%;
+      top: 160px;
+      transform: translateX(-50%);
+      width: 210px;
+      padding: 12px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.42);
+      color: #8d4b68;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 0.08em;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+    }
+
+    .vase-mouth-front {
+      position: absolute;
+      left: 50%;
+      bottom: 288px;
+      width: 292px;
+      height: 36px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background:
+        linear-gradient(180deg, rgba(255,251,253,0.99), rgba(238,218,228,0.98));
+      border: 2px solid rgba(255,255,255,0.78);
+      box-shadow:
+        0 4px 10px rgba(255,255,255,0.34),
+        inset 0 4px 0 rgba(255,255,255,0.72),
+        inset 0 -6px 10px rgba(160, 110, 130, 0.11);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .vase-mouth-front::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 8px;
+      width: 210px;
+      height: 8px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(136, 88, 111, 0.08);
+    }
+
+    .message-box {
+      position: absolute;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      width: min(600px, calc(100% - 36px));
+      min-height: 98px;
+      padding: 22px 26px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.75);
+      box-shadow: 0 20px 55px rgba(120, 68, 90, 0.14);
+      text-align: center;
+      z-index: 20;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .message-box h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      color: #7a3a59;
+    }
+
+    .message-box p {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #684b58;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 18px rgba(255,255,255,0.95);
+      animation: float 6s linear infinite;
+      opacity: 0.75;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      from {
+        transform: translateY(40px) scale(0.7);
+        opacity: 0;
+      }
+      20% { opacity: 0.8; }
+      to {
+        transform: translateY(-760px) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .card {
+        min-height: 820px;
+      }
+
+      .garden {
+        /*
+          手机上把花瓶整体往上提一点。
+          觉得还低：把 padding-bottom 改成 145px。
+          觉得太高：把 padding-bottom 改成 95px。
+        */
+        inset: 180px 0 0;
+        padding-bottom: 125px;
+        transform: scale(0.78);
+        transform-origin: bottom center;
+      }
+
+      .message-box {
+        bottom: 18px;
+      }
+
+      .title {
+        padding-top: 36px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="card">
+      <div class="signature">made with love</div>
+
+      <header class="title">
+        <p>FOR MY MOM</p>
+        <h1>妈妈，生日快乐</h1>
+        <div class="hint">把鼠标停在花苞上，每一朵花都会替我说一句话。</div>
+      </header>
+
+      <div class="garden">
+        <div class="bouquet" aria-label="A birthday bouquet for mom">
+
+          <!-- 花层：花从圆柱花瓶口伸出来 -->
+          <div class="flowers-layer">
+            <div class="flower" style="--x:-108px; --h:215px; --r:-31deg; --c:#ff7da2; --p:#ffd7e4; --leaf-bottom:78px;"
+              data-title="第一朵花"
+              data-message="谢谢你一直把温柔、耐心和勇气放进我的生活里。">
+              <div class="stem"></div>
+              <div class="leaf"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+
+            <div class="flower" style="--x:-70px; --h:265px; --r:-21deg; --c:#b98cff; --p:#eadcff; --leaf-bottom:102px;"
+              data-title="第二朵花"
+              data-message="希望你新的一岁，有很多轻松的下午、漂亮的天空和被好好爱着的时刻。">
+              <div class="stem"></div>
+              <div class="leaf right"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+
+            <div class="flower" style="--x:-34px; --h:235px; --r:-9deg; --c:#ffb15e; --p:#ffe2bd; --leaf-bottom:88px;"
+              data-title="第三朵花"
+              data-message="你总是让我觉得，家不是一个地方，而是有人一直在那里等我。">
+              <div class="stem"></div>
+              <div class="leaf"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+
+            <div class="flower" style="--x:0px; --h:285px; --r:0deg; --c:#ff6f91; --p:#ffd1dc; --leaf-bottom:114px;"
+              data-title="最大的一朵"
+              data-message="祝你生日快乐。愿你每天都健康、漂亮、开心，也永远被这个世界温柔对待。">
+              <div class="stem"></div>
+              <div class="leaf right"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+
+            <div class="flower" style="--x:34px; --h:235px; --r:9deg; --c:#65c7f7; --p:#d5f3ff; --leaf-bottom:88px;"
+              data-title="第五朵花"
+              data-message="谢谢你教会我认真生活，也谢谢你允许我慢慢长大。">
+              <div class="stem"></div>
+              <div class="leaf"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+
+            <div class="flower" style="--x:70px; --h:265px; --r:21deg; --c:#8fd694; --p:#dff7d9; --leaf-bottom:102px;"
+              data-title="第六朵花"
+              data-message="以后我也想成为能让你放心、骄傲、开心的人。">
+              <div class="stem"></div>
+              <div class="leaf right"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+
+            <div class="flower" style="--x:108px; --h:215px; --r:31deg; --c:#ff9f80; --p:#ffe2d6; --leaf-bottom:78px;"
+              data-title="最后一朵"
+              data-message="今天所有花都为你开。生日快乐，我最爱的妈妈。">
+              <div class="stem"></div>
+              <div class="leaf"></div>
+              <div class="bud">
+                <span class="petal" style="--a:0deg"></span>
+                <span class="petal" style="--a:45deg"></span>
+                <span class="petal" style="--a:90deg"></span>
+                <span class="petal" style="--a:135deg"></span>
+                <span class="petal" style="--a:180deg"></span>
+                <span class="petal" style="--a:225deg"></span>
+                <span class="petal" style="--a:270deg"></span>
+                <span class="petal" style="--a:315deg"></span>
+                <span class="center"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. 瓶身：盖住花杆下半部分 -->
+          <div class="vase-body"></div>
+
+          <!-- 4. 瓶口前半层：盖住花杆进入瓶口的地方 -->
+          <div class="vase-mouth-front"></div>
+        </div>
+      </div>
+
+      <aside class="message-box" aria-live="polite">
+        <h2 id="messageTitle">送给妈妈的一束花</h2>
+        <p id="messageText">把鼠标放到花苞上，它们会一朵一朵开起来。每朵花都藏着一句想对你说的话。</p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const flowers = document.querySelectorAll(".flower");
+    const title = document.querySelector("#messageTitle");
+    const text = document.querySelector("#messageText");
+
+    flowers.forEach((flower) => {
+      flower.addEventListener("mouseenter", () => {
+        title.textContent = flower.dataset.title;
+        text.textContent = flower.dataset.message;
+        flower.classList.add("open");
+      });
+
+      flower.addEventListener("mouseleave", () => {
+        flower.classList.remove("open");
+      });
+
+      // 手机/平板没有 hover，所以点一下也能开花。
+      flower.addEventListener("click", () => {
+        flowers.forEach((f) => f.classList.remove("open"));
+        flower.classList.add("open");
+        title.textContent = flower.dataset.title;
+        text.textContent = flower.dataset.message;
+      });
+    });
+
+    // 背景小光点
+    const card = document.querySelector(".card");
+    for (let i = 0; i < 26; i++) {
+      const sparkle = document.createElement("span");
+      sparkle.className = "sparkle";
+      sparkle.style.left = Math.random() * 100 + "%";
+      sparkle.style.top = 80 + Math.random() * 80 + "%";
+      sparkle.style.animationDelay = Math.random() * 6 + "s";
+      sparkle.style.animationDuration = 5 + Math.random() * 6 + "s";
+      card.appendChild(sparkle);
+    }
+  </script>
+</body>
+</html>
