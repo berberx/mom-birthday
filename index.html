@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>生日花园</title>
+  <title>给妈妈的生日花园</title>
 
   <style>
     * {
@@ -378,11 +378,17 @@
 
     @media (max-width: 720px) {
       .card {
-        min-height: 900px;
+        min-height: 820px;
       }
 
       .garden {
-        inset: 205px 0 0;
+        /*
+          手机上把花瓶整体往上提一点。
+          觉得还低：把 padding-bottom 改成 145px。
+          觉得太高：把 padding-bottom 改成 95px。
+        */
+        inset: 180px 0 0;
+        padding-bottom: 125px;
         transform: scale(0.78);
         transform-origin: bottom center;
       }
@@ -405,8 +411,8 @@
 
       <header class="title">
         <p>FOR MY MOM</p>
-        <h1>妈妈 生日快乐！</h1>
-        <div class="hint">把鼠标停在花苞上/点击花苞</div>
+        <h1>妈妈，生日快乐</h1>
+        <div class="hint">把鼠标停在花苞上，每一朵花都会替我说一句话。</div>
       </header>
 
       <div class="garden">
@@ -416,7 +422,7 @@
           <div class="flowers-layer">
             <div class="flower" style="--x:-108px; --h:215px; --r:-31deg; --c:#ff7da2; --p:#ffd7e4; --leaf-bottom:78px;"
               data-title="第一朵花"
-              data-message="康乃馨的花语是爱、魅力与尊敬；妈妈你是教会我爱的人，是充满魅力的人，是我尊敬的人。">
+              data-message="谢谢你一直把温柔、耐心和勇气放进我的生活里。">
               <div class="stem"></div>
               <div class="leaf"></div>
               <div class="bud">
@@ -434,7 +440,7 @@
 
             <div class="flower" style="--x:-70px; --h:265px; --r:-21deg; --c:#b98cff; --p:#eadcff; --leaf-bottom:102px;"
               data-title="第二朵花"
-              data-message="紫色洋桔梗象征无悔的爱；妈妈你总是给我无悔的爱，我也将给你不变的爱。">
+              data-message="希望你新的一岁，有很多轻松的下午、漂亮的天空和被好好爱着的时刻。">
               <div class="stem"></div>
               <div class="leaf right"></div>
               <div class="bud">
@@ -452,7 +458,7 @@
 
             <div class="flower" style="--x:-34px; --h:235px; --r:-9deg; --c:#ffb15e; --p:#ffe2bd; --leaf-bottom:88px;"
               data-title="第三朵花"
-              data-message="妈妈是你让我发现，家不是一个房子，而是我的起点、终点以及随时向我敞开的休息站">
+              data-message="你总是让我觉得，家不是一个地方，而是有人一直在那里等我。">
               <div class="stem"></div>
               <div class="leaf"></div>
               <div class="bud">
@@ -488,7 +494,7 @@
 
             <div class="flower" style="--x:34px; --h:235px; --r:9deg; --c:#65c7f7; --p:#d5f3ff; --leaf-bottom:88px;"
               data-title="第五朵花"
-              data-message="我想你新的一岁继续肆意地玩、张扬地活。">
+              data-message="谢谢你教会我认真生活，也谢谢你允许我慢慢长大。">
               <div class="stem"></div>
               <div class="leaf"></div>
               <div class="bud">
